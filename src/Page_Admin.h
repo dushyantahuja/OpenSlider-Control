@@ -6,8 +6,7 @@ const char PAGE_AdminMainPage[] PROGMEM = R"=====(
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <strong>Administration</strong>
 <hr>
-<a href="control.html" style="width:250px" class="btn btn--m btn--blue" >Manual Control</a><br>
-<a href="timelapse.html" style="width:250px" class="btn btn--m btn--blue" >Setup Timelapse</a><br>
+<a href="control.html" style="width:250px" class="btn btn--m btn--blue" >Slider Controls</a><br>
 <a href="update" style="width:250px" class="btn btn--m btn--blue" >Upload New Firmware</a><br>
 <script>
 window.onload = function ()
