@@ -16,14 +16,18 @@ void handleUpdate(AsyncWebServerRequest *request);
 void handleDoUpdate(AsyncWebServerRequest *request, const String& filename, size_t index, uint8_t *data, size_t len, bool final);
 void send_control_html(AsyncWebServerRequest *request);
 void controlSlider(AsyncWebServerRequest *request);
-
+void timelapseControl();
 
 String message = "";
 
+
 struct strConfig {
-    int current_x;
-    int current_y;
-    int current_z;
+    double xMove;
+    double yMove;
+    double zMove;
+    long time;
+    long timelapsecount;
+    bool timelapseOn = false;
     //int latitude;
     //int longitude;
 }   config;

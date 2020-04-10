@@ -6,7 +6,7 @@
 #include <ESPAsyncTCP.h>
 #include <ESPAsyncWebServer.h>
 #include <Updater.h>
-
+#include <FastLED.h>
 #include <ESPAsyncWiFiManager.h>
 //#include <ESP8266mDNS.h>
 #include <SPIFFSEditor.h>
@@ -28,9 +28,6 @@ WiFiUDP ntpUDP;
 
 WiFiClient client;
 HTTPClient http;
-
-#include "EEPROM.h"
-
 
 #include "Page_Admin.h"
 #include "config.h"
@@ -103,6 +100,9 @@ uint8_t step = 0;
 void loop() {
   //timeClient.update();
   //MDNS.update();
+  EVERY_N_SECONDS(1){
+    if(config.timelapseOn) timelapseControl();
+  }
 }
 
 
@@ -127,6 +127,24 @@ void handleNotFound(AsyncWebServerRequest *request){
 
 void send_control_html(AsyncWebServerRequest *request)
 {
+  if (request->args() > 0 ){
+    AsyncWebParameter* p = request->getParam("XEnd");
+    int XEnd = p->value().toInt();
+    p = request->getParam("YEnd");
+    int YEnd = p->value().toInt();
+    p = request->getParam("ZEnd");
+    int ZEnd = p->value().toInt();
+    p = request->getParam("Min");
+    config.time = p->value().toInt()*60;        //Convert to Seconds
+    p = request->getParam("Sec");
+    config.time += p->value().toInt();
+    config.xMove = ((double)XEnd / config.time);
+    config.yMove = ((double)YEnd / config.time);
+    config.zMove = ((double)ZEnd / config.time);
+    config.timelapseOn = true;
+    config.timelapsecount = 0;
+    Serial.println("G92 X0Y0Z0");
+  }
   AsyncWebServerResponse *response = request->beginResponse(SPIFFS, "/www/control.html", "text/html");
   //response->addHeader("Content-Encoding", "gzip");
   request->send(response);
@@ -139,4 +157,10 @@ void controlSlider(AsyncWebServerRequest *request){
   AsyncWebServerResponse *response = request->beginResponse(200, "text/plain", "");
   request->send(response);
   //message+= p->value();
+}
+
+void timelapseControl(){
+    if(++config.timelapsecount > config.time -1) config.timelapseOn = false;
+    String command = "G1 X" + String(config.xMove) + " Y" + String(config.yMove) + " Z" + String(config.zMove);
+    Serial.println(command);
 }
