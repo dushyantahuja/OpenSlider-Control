@@ -144,6 +144,7 @@ void send_control_html(AsyncWebServerRequest *request)
     config.timelapseOn = true;
     config.timelapsecount = 0;
     Serial.println("G92 X0Y0Z0");
+    Serial.println("G91");
   }
   AsyncWebServerResponse *response = request->beginResponse(SPIFFS, "/www/control.html", "text/html");
   //response->addHeader("Content-Encoding", "gzip");
