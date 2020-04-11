@@ -145,9 +145,9 @@ void send_timelapse_html(AsyncWebServerRequest *request)
     p = request->getParam("Interval");
     config.interval = p->value().toInt();
     if(config.time >0 && config.interval > 0){
-      config.xMove = ((double)XEnd / config.time / config.interval);
-      config.yMove = ((double)YEnd / config.time / config.interval);
-      config.zMove = ((double)ZEnd / config.time / config.interval);
+      config.xMove = ((double)XEnd / config.time * config.interval);
+      config.yMove = ((double)YEnd / config.time * config.interval);
+      config.zMove = ((double)ZEnd / config.time * config.interval);
       config.timelapseOn = true;
       config.timelapsecount = 0;
       Serial.println("G92 X0 Y0 Z0");
