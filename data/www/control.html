@@ -300,12 +300,13 @@ function motorsOff(a) {
     </svg>
     <h2>Timelapse Control</h2>
     Set initial position using the controls above, enter the end position and time below. Click Start Timelapse<BR> 
-    <form action="control.html" id="commandForm" method="get">
-        End X: <input type="text" id="XEnd" name = "XEnd" size=4 value=0 style="width:50px" />
-        End Y: <input type="text" id="YEnd" name = "YEnd" size=4 value=0 style="width:50px" />
-        End Z: <input type="text" id="ZEnd" name = "ZEnd" size=4 value=0 style="width:50px" /><BR>
-        Time <input type="text" id="Min" name = "Min" size=4 value=0 style="width:50px" /> Minutes 
-        <input type="text" id="Sec" name = "Sec" size=4 value=0 style="width:50px" /> Seconds 
+    <form action="timelapse.html" id="commandForm" method="get">
+        End X: <input type="number" id="XEnd" name = "XEnd" size=4 value=0 style="width:50px" />
+        End Y: <input type="number" id="YEnd" name = "YEnd" size=4 value=0 style="width:50px" />
+        End Z: <input type="number" id="ZEnd" name = "ZEnd" size=4 value=0 style="width:50px" /><BR>
+        Time <input type="number" id="Min" name = "Min" size=4 value=0 style="width:50px" min = "0"/> Minutes 
+        <input type="number" id="Sec" name = "Sec" size=4 value=0 style="width:50px" min = "0"/> Seconds <BR>
+        Move Interval (Seconds) <input type="number" id="Interval" name = "Interval" size=4 value="1" style="width:50px" min = "1" />
         <input type="submit" value="Start Timelapse">
     </form>
     

@@ -15,7 +15,7 @@
 AsyncWebServer httpServer(80);
 DNSServer dns;
 
-//#define DEBUG
+#define DEBUG
 
 #include <NTPClient.h>
 
@@ -29,21 +29,18 @@ WiFiUDP ntpUDP;
 WiFiClient client;
 HTTPClient http;
 
-#include "Page_Admin.h"
+//#include "Page_Admin.h"
 #include "config.h"
 
 
 void setup() {
     // put your setup code here, to run once:
     delay(3000);
-    Serial.begin(250000);
     if(!SPIFFS.begin()){
       Serial.println("An Error has occurred while mounting SPIFFS");
       return;
     }
     //delay(10000);
-    Serial.println("G92 X0 Y0 Z0");         // Set Zero at start
-    Serial.println("G91");                  // Set Relative Positioning
     DEBUG_PRINT("Wifi Setup Initiated");
     WiFi.setAutoConnect(true);
     WiFi.setSleepMode(WIFI_NONE_SLEEP);
@@ -57,11 +54,15 @@ void setup() {
     DEBUG_PRINT("Wifi Setup Completed");
     //MDNS.begin(DEVICE_NAME);
     //MDNS.addService("http", "tcp", 80);
-
+    Serial.begin(250000);
+    delay(1000);
+    Serial.println();
+    Serial.println("G92 X0 Y0 Z0");         // Set Zero at start
+    Serial.println("G91");                  // Set Relative Positioning
     // Admin page
-    httpServer.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
+    /*httpServer.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
         request ->send_P(200,"text/html", PAGE_AdminMainPage ); 
-    });
+    });*/
     httpServer.on("/style.css", HTTP_GET, [](AsyncWebServerRequest *request){
         AsyncWebServerResponse *response = request->beginResponse(SPIFFS, "/www/style.css.gz", "text/css");
         response->addHeader("Content-Encoding", "gzip");
@@ -77,7 +78,10 @@ void setup() {
         response->addHeader("Content-Encoding", "gzip");
         request->send(response);
     });
-    httpServer.on("/control.html", HTTP_GET, send_control_html);
+    httpServer.on("/", HTTP_GET, send_control_html);
+    //httpServer.on("/control.html", HTTP_GET, send_control_html);
+    httpServer.on("/timelapse.html", HTTP_GET, send_timelapse_html);
+    httpServer.on("/admin/timelapseinfo", HTTP_GET, send_timelapse_info);
     httpServer.on("/command", HTTP_POST, controlSlider);
     httpServer.on("/update", HTTP_GET, [](AsyncWebServerRequest *request){handleUpdate(request);});
     httpServer.on("/doUpdate", HTTP_POST,
@@ -125,7 +129,7 @@ void handleNotFound(AsyncWebServerRequest *request){
   message = "";
 }
 
-void send_control_html(AsyncWebServerRequest *request)
+void send_timelapse_html(AsyncWebServerRequest *request)
 {
   if (request->args() > 0 ){
     AsyncWebParameter* p = request->getParam("XEnd");
@@ -138,30 +142,69 @@ void send_control_html(AsyncWebServerRequest *request)
     config.time = p->value().toInt()*60;        //Convert to Seconds
     p = request->getParam("Sec");
     config.time += p->value().toInt();
-    config.xMove = ((double)XEnd / config.time);
-    config.yMove = ((double)YEnd / config.time);
-    config.zMove = ((double)ZEnd / config.time);
-    config.timelapseOn = true;
-    config.timelapsecount = 0;
-    Serial.println("G92 X0Y0Z0");
-    Serial.println("G91");
+    p = request->getParam("Interval");
+    config.interval = p->value().toInt();
+    if(config.time >0 && config.interval > 0){
+      config.xMove = ((double)XEnd / config.time / config.interval);
+      config.yMove = ((double)YEnd / config.time / config.interval);
+      config.zMove = ((double)ZEnd / config.time / config.interval);
+      config.timelapseOn = true;
+      config.timelapsecount = 0;
+      Serial.println("G92 X0 Y0 Z0");
+      Serial.println("G91");
+    }
   }
-  AsyncWebServerResponse *response = request->beginResponse(SPIFFS, "/www/control.html", "text/html");
+  AsyncWebServerResponse *response = request->beginResponse(SPIFFS, "/www/timelapse.html", "text/html");
   //response->addHeader("Content-Encoding", "gzip");
   request->send(response);
 }
 
+void send_control_html(AsyncWebServerRequest *request)
+{
+  if(config.timelapseOn){
+    AsyncWebServerResponse *response = request->beginResponse(SPIFFS, "/www/timelapse.html", "text/html");
+    //response->addHeader("Content-Encoding", "gzip");
+    request->send(response);
+  }
+  else{
+    if (request->args() > 0 ){
+      AsyncWebParameter* p = request->getParam("Stop");
+      if(p->value().toInt() == 99) {
+        config.timelapseOn = false;
+        Serial.println("M18");
+      }
+    }
+  AsyncWebServerResponse *response = request->beginResponse(SPIFFS, "/www/control.html", "text/html");
+  //response->addHeader("Content-Encoding", "gzip");
+  request->send(response);
+  }
+}
+
 void controlSlider(AsyncWebServerRequest *request){
-  AsyncWebParameter* p = request->getParam(0);
-  Serial.println("G91");
-  Serial.println( p->value());
+  if (request->args() > 0 ){
+    AsyncWebParameter* p = request->getParam(0);
+    Serial.println("G91");
+    Serial.println( p->value());
+  }
   AsyncWebServerResponse *response = request->beginResponse(200, "text/plain", "");
   request->send(response);
   //message+= p->value();
 }
 
 void timelapseControl(){
-    if(++config.timelapsecount > config.time -1) config.timelapseOn = false;
-    String command = "G1 X" + String(config.xMove) + " Y" + String(config.yMove) + " Z" + String(config.zMove);
-    Serial.println(command);
+    if(++config.timelapsecount > config.time -1) config.timelapseOn = false; 
+    if(config.timelapsecount % config.interval == 0){
+      String command = "G1 X" + String(config.xMove) + " Y" + String(config.yMove) + " Z" + String(config.zMove);
+      Serial.println(command);
+    } 
+}
+
+void send_timelapse_info(AsyncWebServerRequest *request){
+  String values ="";
+  values += "xMove|" + String(config.xMove) + "|input\n";
+  values += "yMove|" +  String(config.yMove) + "|input\n";
+  values += "zMove|" +  String(config.zMove) + "|input\n";
+  values += "Sec|" +  String(config.time - config.timelapsecount) + "|input\n";
+  values += "Interval|" +  String(config.interval) + "|input\n";
+  request->send ( 200, "text/plain", values);
 }

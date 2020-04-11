@@ -15,6 +15,8 @@ void handleNotFound(AsyncWebServerRequest *request);
 void handleUpdate(AsyncWebServerRequest *request);
 void handleDoUpdate(AsyncWebServerRequest *request, const String& filename, size_t index, uint8_t *data, size_t len, bool final);
 void send_control_html(AsyncWebServerRequest *request);
+void send_timelapse_html(AsyncWebServerRequest *request);
+void send_timelapse_info(AsyncWebServerRequest *request);
 void controlSlider(AsyncWebServerRequest *request);
 void timelapseControl();
 
@@ -28,6 +30,7 @@ struct strConfig {
     long time;
     long timelapsecount;
     bool timelapseOn = false;
+    int interval = 1;
     //int latitude;
     //int longitude;
 }   config;

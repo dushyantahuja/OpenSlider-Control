@@ -1,0 +1,41 @@
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<body>
+<a href="/" class="btn btn--s"><</a>&nbsp;&nbsp;<strong>Timelapse Ongoing</strong>
+<hr>
+Configuration:<br>
+X: <input type="number" id="xMove" name = "xMove" size=4 value="" style="width:50px" readonly/>
+Y: <input type="number" id="yMove" name = "yMove" size=4 value="" style="width:50px" readonly/>
+Z: <input type="number" id="zMove" name = "zMove" size=4 value="" style="width:50px" readonly/><BR>
+Interval: <input type="number" id="Interval" name = "Interval" size=4 value="" style="width:50px" readonly/><BR>
+Time Left (Seconds): <input type="number" id="Sec" name = "Sec" size=4 value="" style="width:50px" readonly/> 
+<hr>
+<form action="/" id="commandForm" method="get">
+  <input type="hidden" name = "Stop" value = 99>
+  <input type="submit" id = "StopTimelapse" value="Stop Timelapse">
+</form>
+<hr>
+<script>
+
+window.onload = function ()
+{
+  load("style.css","css", function()
+  {
+    load("microajax.js","js", function()
+    {
+        setValues("/admin/timelapseinfo");
+    });
+  });
+}
+setInterval(function(){
+    setValues("/admin/timelapseinfo"); // this will run after every 5 seconds
+    if (document.getElementById("Sec").value == 0)
+      window.location.replace("/");  
+}, 1000);
+function load(e,t,n){if("js"==t){var a=document.createElement("script");a.src=e,a.type="text/javascript",a.async=!1,a.onload=function(){n()},document.getElementsByTagName("head")[0].appendChild(a)}else if("css"==t){var a=document.createElement("link");a.href=e,a.rel="stylesheet",a.type="text/css",a.async=!1,a.onload=function(){n()},document.getElementsByTagName("head")[0].appendChild(a)}}
+
+
+
+
+</script>
+</body>
